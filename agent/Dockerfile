@@ -74,21 +74,21 @@ RUN . 'C:\Windows\Microsoft.NET\Framework\v4.0.30319\Aspnet_regiis.exe' -ga cont
     . 'C:\Windows\Microsoft.NET\Framework64\v4.0.30319\Aspnet_regiis.exe' -ga containeradministrator; `
     . 'C:\Windows\Microsoft.NET\Framework64\v4.0.30319\Aspnet_regiis.exe' -ga agentuser
 # agent:
+#RUN choco install --no-progress -y azure-pipelines-agent
 # auto download latest release, wait for bug
 # https://github.com/microsoft/azure-pipelines-agent/issues/2688 to be fixed
-#RUN $releases = Invoke-RestMethod https://api.github.com/repos/microsoft/azure-pipelines-agent/releases; `
-#    $releaseTag = npx -q semvermaxcli ( $releases | ? { ! $_.prerelease } | % { $_.tag_name }); `
-#    $assetsUrl = Invoke-RestMethod ($releases | ? { $_.tag_name -eq $releaseTag }).assets_url; `
-#    $assets = Invoke-RestMethod $assetsUrl.browser_download_url; `
-#    $agentUrl = ($assets | ? { $_.platform -eq 'win-x64' }).downloadUrl; `
-#    Invoke-WebRequest $agentUrl -OutFile agent.zip; `
+RUN $releases = Invoke-RestMethod https://api.github.com/repos/microsoft/azure-pipelines-agent/releases; `
+    $releaseTag = npx -q semvermaxcli ( $releases | ? { ! $_.prerelease } | % { $_.tag_name }); `
+    $assetsUrl = Invoke-RestMethod ($releases | ? { $_.tag_name -eq $releaseTag }).assets_url; `
+    $assets = Invoke-RestMethod $assetsUrl.browser_download_url; `
+    $agentUrl = ($assets | ? { $_.platform -eq 'win-x64' }).downloadUrl; `
+    Invoke-WebRequest $agentUrl -OutFile agent.zip; `
+    Add-Type -AssemblyName System.IO.Compression.FileSystem ; `
+    [System.IO.Compression.ZipFile]::ExtractToDirectory('agent.zip', \"$PWD\"); `
+#RUN Invoke-WebRequest https://vstsagentpackage.azureedge.net/agent/2.163.1/vsts-agent-win-x64-2.163.1.zip -OutFile agent.zip; `
 #    Add-Type -AssemblyName System.IO.Compression.FileSystem ; `
 #    [System.IO.Compression.ZipFile]::ExtractToDirectory('agent.zip', \"$PWD\"); `
 #    Remove-Item agent.zip
-RUN Invoke-WebRequest https://vstsagentpackage.azureedge.net/agent/2.163.1/vsts-agent-win-x64-2.163.1.zip -OutFile agent.zip; `
-    Add-Type -AssemblyName System.IO.Compression.FileSystem ; `
-    [System.IO.Compression.ZipFile]::ExtractToDirectory('agent.zip', \"$PWD\"); `
-    Remove-Item agent.zip
 COPY *.ps1 c:\agent\
 RUN $acl = Get-Acl c:\agent\; `
     $acl.SetOwner([System.Security.Principal.NTAccount] 'agentuser'); `
