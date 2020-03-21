@@ -1,0 +1,21 @@
+version: "3.3" 
+
+services:
+
+  azureagent: 
+    #container_name: docker-azure-pipelines-agent-windows
+    image: ravensorb/docker-azure-pipelines-agent-windows
+    labels: 
+      - version="1.0"
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    env_file:
+      - vstsagent.env
+    restart: always
+    networks: 
+      - azureagent
+
+
+networks: 
+  azureagent:
